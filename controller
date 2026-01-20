@@ -1,0 +1,54 @@
+from model import Model
+from view import View
+import flet as ft
+
+class Controller:
+    def __init__(self, model:Model, view:View):
+        self.model = model
+        self.view = view
+
+    def populate_dd_years(self):
+        lista=self.model.load_years()
+        if not lista:
+            print("Lista vuota(controller)")
+            return []
+        self.view.dd_year.options.clear()
+        for n in lista:
+            anno1=n["year"]
+            anno2=n["year"]
+            self.view.dd_year.options.append(ft.dropdown.Option(key=anno1,text=anno2))
+        self.view.update()
+
+    def populate_dd_shape(self,year):
+        year=self.view.dd_year.value
+        lista=self.model.load_shape(year)
+        if not year:
+            self.view.show_alert("Selezionare prima un anno")
+        else:
+            self.view.dd_shape.options.clear()
+            for n in lista:
+                shape1=n["shape"]
+                shape2=n["shape"]
+                self.view.dd_shape.options.append(ft.dropdown.Option(key=shape1,text=shape2))
+        self.view.update()
+
+    def handle_graph(self,e):
+        year=self.view.dd_year.value
+        shape=self.view.dd_shape.value
+        grafo=self.model.build_graph(year,shape)
+        self.view.lista_visualizzazione_1.controls.clear()
+        self.view.lista_visualizzazione_1.controls.append(ft.Text(f"Numero di Vertici:"
+                                                                  f"{self.model.grafo.number_of_nodes()},"
+                                                                  f"Numero di Archi:"
+                                                                  f"{self.model.grafo.number_of_edges()},"))
+        lista=self.model.stampa_lista()
+        if not lista:
+            print("Lista vuota(controller)")
+            return []
+        for n in lista:
+            sigla=n[0]
+            peso=n[1]
+            self.view.lista_visualizzazione_1.controls.append(ft.Text(f"Nodo:{sigla},somma pesi su archi: {peso}"))
+        self.view.update()
+    def handle_path(self,e):
+        pass
