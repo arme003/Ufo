@@ -1,0 +1,129 @@
+from DB_connect import DBConnect
+
+class Dao:
+    def __init__(self):
+        pass
+
+    def read_years(self):
+        cnx=DBConnect.get_connection()
+        results=[]
+        if cnx is None:
+            print(f"Errore di connessione DB")
+            return []
+        cursor=cnx.cursor(dictionary=True)
+        query=("SELECT DISTINCT YEAR(s_datetime)AS year "
+               "FROM sighting "
+               "WHERE YEAR(s_datetime)>=1910 "
+               "AND YEAR(s_datetime)<=2014 "
+               "ORDER BY YEAR(s_datetime);")
+        try:
+            cursor.execute(query)
+            rows=cursor.fetchall()
+            for row in rows:
+                results.append(row)
+        except Exception as e:
+            print(f"Errore nella esecuzione della query :{e}")
+        finally:
+            cursor.close()
+            cnx.close()
+        return results
+
+    def read_shape(self,year):
+        cnx=DBConnect.get_connection()
+        results=[]
+        if cnx is None:
+            print(f"Errore di connessione DB")
+            return []
+        cursor=cnx.cursor(dictionary=True)
+        query=("SELECT DISTINCT shape "
+               "FROM sighting "
+               "WHERE shape<>'unknown' "
+               "AND shape<>' ' "
+               "AND YEAR(s_datetime)=%s ;")
+        try:
+            cursor.execute(query,(year,))
+            rows=cursor.fetchall()
+            for row in rows:
+                results.append(row)
+        except Exception as e:
+            print(f"Errore nella esecuzione della query :{e}")
+        finally:
+            cursor.close()
+            cnx.close()
+        return results
+
+    def read_states(self):
+        cnx=DBConnect.get_connection()
+        results=[]
+        if cnx is None:
+            print(f"Errore di connessione DB")
+            return []
+        cursor=cnx.cursor(dictionary=True)
+        query=("SELECT DISTINCT id "
+               "FROM state; ")
+        try:
+            cursor.execute(query)
+            rows=cursor.fetchall()
+            for row in rows:
+                results.append(row)
+        except Exception as e:
+            print(f"Errore nella esecuzione della query :{e}")
+        finally:
+            cursor.close()
+            cnx.close()
+        return results
+
+    def read_vicini(self):
+        cnx=DBConnect.get_connection()
+        results=[]
+        if cnx is None:
+            print(f"Errore di connessione DB")
+            return []
+        cursor=cnx.cursor()
+        query=("SELECT state1,state2 "
+               "FROM neighbor;")
+        try:
+            cursor.execute(query)
+            rows=cursor.fetchall()
+            for row in rows:
+                results.append(row)
+        except Exception as e:
+            print(f"Errore nella esecuzione della query :{e}")
+        finally:
+            cursor.close()
+            cnx.close()
+        return results
+
+    def read_all(self,year,shape):
+        cnx=DBConnect.get_connection()
+        results=[]
+        if cnx is None:
+            print(f"Errore di connessione DB")
+            return []
+        cursor=cnx.cursor(dictionary=True)
+        query=("SELECT st.id,COUNT(DISTINCT s.id)AS avvistamenti "
+               "FROM state st,sighting s "
+               "WHERE st.id=s.state "
+               "AND YEAR(s.s_datetime)=%s "
+               "AND s.shape=%s "
+               "AND s.shape<>'unknown' "
+               "AND s.shape<>' ' "
+               "GROUP BY st.id ;")
+        try:
+            cursor.execute(query,(year,shape))
+            rows=cursor.fetchall()
+            for row in rows:
+                results.append(row)
+        except Exception as e:
+            print(f"Errore nella esecuzione della query :{e}")
+        finally:
+            cursor.close()
+            cnx.close()
+        return results
+
+
+
+
+
+
+
