@@ -1,0 +1,83 @@
+from dao import Dao
+import networkx as nx
+
+class Model:
+    def __init__(self):
+        self.dao=Dao()
+        self.grafo=None
+
+    def load_years(self):
+        lista=self.dao.read_years()
+        if len(lista)==0:
+            print(f"Lista vuota(model)")
+            return []
+        return lista
+
+    def load_shape(self,year):
+        lista=self.dao.read_shape(year)
+        if len(lista)==0:
+            print(f"Lista vuota(model)")
+            return []
+        return lista
+
+    def load_states(self):
+        lista=self.dao.read_states()
+        if len(lista)==0:
+            print(f"Lista vuota(model)")
+            return []
+        return lista
+
+    def load_vicini(self):
+        lista=self.dao.read_vicini()
+        if len(lista)==0:
+            print(f"Lista vuota(model)")
+            return []
+        return lista
+
+    def load_all(self,year,shape):
+        lista=self.dao.read_all(year,shape)
+        if len(lista)==0:
+            print(f"Lista vuota(model)")
+            return []
+        return lista
+
+    def build_graph(self,year,shape):
+        stati=self.dao.read_states()
+        if len(stati)==0:
+            print(f"Lista vuota(model,graph)")
+            return []
+        results=[]
+        for n in stati:
+            sigla=n["id"]
+            results.append(sigla)
+        self.grafo=nx.Graph()
+        self.grafo.add_nodes_from(results)
+        for n in self.grafo.nodes():
+            self.grafo.nodes[n]["avvistamenti"]=0
+        vicini=self.load_vicini()
+        self.grafo.add_edges_from(vicini)
+        for u,v in self.grafo.edges():
+            self.grafo[u][v]["weight"]=0
+        lista_pesi=self.dao.read_all(year,shape)
+        if len(lista_pesi)==0:
+            print(f"Lista vuota(model)")
+            return []
+        for n in lista_pesi:
+            sigla=n["id"]
+            peso=n["avvistamenti"]
+            self.grafo.nodes[sigla]["avvistamenti"]=peso
+        for u,v in self.grafo.edges():
+            ss=self.grafo.nodes[u]["avvistamenti"]
+            sv=self.grafo.nodes[v]["avvistamenti"]
+            self.grafo[u][v]["weight"]=ss+sv
+        return self.grafo
+
+    def stampa_lista(self):
+        results=[]
+        for u in self.grafo.nodes():
+            somma=0
+            for v in self.grafo.neighbors(u):
+                somma+=self.grafo[u][v]["weight"]
+            results.append([u,somma])
+        return results
+
